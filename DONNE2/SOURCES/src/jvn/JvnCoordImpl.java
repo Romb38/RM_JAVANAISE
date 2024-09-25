@@ -9,7 +9,10 @@
 
 package jvn;
 
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.io.Serializable;
 
@@ -23,6 +26,8 @@ public class JvnCoordImpl
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	public static final int COORD_PORT = 1234;
+	public static final String COORD_NAME = "coordinator";
 	
 	private HashMap<String, sharedObject> sharedObjects;
 
@@ -33,6 +38,8 @@ public class JvnCoordImpl
 	private JvnCoordImpl() throws Exception {
 		// to be completed
 		this.sharedObjects = new HashMap<>();
+		Registry registry = LocateRegistry.createRegistry(COORD_PORT);
+		registry.bind(COORD_NAME, registry);
 	}
 
   /**
@@ -41,9 +48,8 @@ public class JvnCoordImpl
   * @throws java.rmi.RemoteException,JvnException
   **/
   public int jvnGetObjectId()
-  throws java.rmi.RemoteException,jvn.JvnException {
-    // to be completed 
-    return 0;
+  throws java.rmi.RemoteException,jvn.JvnException { 
+	  return this.sharedObjects.values().stream().max(Comparator.comparingInt(sharedObject::getUid)).get().getUid() + 1;
   }
   
   /**
@@ -56,7 +62,10 @@ public class JvnCoordImpl
   **/
   public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
-    // to be completed 
+    // to be completed
+	  sharedObject tmp = new sharedObject(this.jvnGetObjectId(),jo);
+	  tmp.createOrSetLockState(js, LockStates.NL);
+	  this.sharedObjects.put(jon, tmp);
   }
   
   /**
@@ -67,8 +76,17 @@ public class JvnCoordImpl
   **/
   public JvnObject jvnLookupObject(String jon, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
-    // to be completed 
-    return null;
+	  sharedObject obj = this.sharedObjects.get(jon);
+	  
+	  if (obj == null) {
+		 throw new jvn.JvnException("The " + jon + " JVN object doesn't exist");
+	  }
+	  
+	  while (!obj.isReadableBy(js)) {
+		  // [TODO] Wait
+	  }
+	  
+	  return obj.getState();
   }
   
   /**
@@ -80,8 +98,25 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockRead(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-    // to be completed
-    return null;
+	   sharedObject state = null;
+	   for (sharedObject obj : this.sharedObjects.values()) {
+		   if (obj.getUid() == joi) {
+			   state = obj;
+			   break;
+		   }
+	   }
+	   
+	   if (state == null) {
+		   throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
+	   }
+	   
+	   while(!state.canBeReadBy(js)) {
+		   // [TODO] Wait
+	   }
+	   
+	   state.createOrSetLockState(js, LockStates.R);
+	   
+    return state.getState();
    }
 
   /**
@@ -93,8 +128,25 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-    // to be completed
-    return null;
+	   sharedObject state = null;
+	   for (sharedObject obj : this.sharedObjects.values()) {
+		   if (obj.getUid() == joi) {
+			   state = obj;
+			   break;
+		   }
+	   }
+	   
+	   if (state == null) {
+		   throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
+	   }
+	   
+	   while(!state.canBeWriteBy(js)) {
+		   // [TODO] Wait
+	   }
+	   
+	   state.createOrSetLockState(js, LockStates.W);
+	   
+    return state.getState();
    }
 
 	/**

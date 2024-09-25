@@ -1,11 +1,12 @@
 package jvn;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class sharedObject {
 	
 	// Unique identifier of the object
-	private String uid;
+	private int uid;
 	
 	// (Value) of the object
 	private JvnObject state;
@@ -14,18 +15,14 @@ public class sharedObject {
 	private HashMap<JvnRemoteServer, LockStates> lockStateByServer;
 	
 	
-	public sharedObject(String uid, JvnObject state) {
+	public sharedObject(int uid, JvnObject state) {
 		this.uid = uid;
 		this.state = state;
 		this.lockStateByServer = new HashMap<>();
 	}
 	
-	public String getUid() {
+	public int getUid() {
 		return uid;
-	}
-
-	public void setUid(String uid) {
-		this.uid = uid;
 	}
 
 	public JvnObject getState() {
@@ -66,6 +63,38 @@ public class sharedObject {
 		this.lockStateByServer.remove(server);
 	}
 	
+	public boolean isReadableBy(JvnRemoteServer server) {
+		LockStates state = this.lockStateByServer.get(server);
+		
+		if (state == LockStates.R || state == LockStates.RC || state == LockStates.RWC) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean canBeReadBy(JvnRemoteServer server) {
+		for (Entry<JvnRemoteServer, LockStates> obj: this.lockStateByServer.entrySet()) {
+			if (obj.getKey() != server) {
+				if (obj.getValue() == LockStates.W) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	
+	public boolean canBeWriteBy(JvnRemoteServer server) {
+		for (Entry<JvnRemoteServer, LockStates> obj: this.lockStateByServer.entrySet()) {
+			if (obj.getKey() != server) {
+				if (obj.getValue() == LockStates.R) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 	
 
 }

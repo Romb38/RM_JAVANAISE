@@ -9,7 +9,11 @@
 
 package jvn;
 
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
 import java.io.*;
 
 
@@ -24,6 +28,12 @@ public class JvnServerImpl
 	private static final long serialVersionUID = 1L;
 	// A JVN server is managed as a singleton 
 	private static JvnServerImpl js = null;
+	
+	private JvnRemoteCoord coord = null;
+	private Registry registery = null;
+	
+	private String name = "";
+	private HashMap<String, JvnObject> objects = new HashMap<>();
 
   /**
   * Default constructor
@@ -31,7 +41,10 @@ public class JvnServerImpl
   **/
 	private JvnServerImpl() throws Exception {
 		super();
-		// to be completed
+		this.registery = LocateRegistry.getRegistry(JvnCoordImpl.COORD_PORT);
+		this.coord = (JvnRemoteCoord) registery.lookup(JvnCoordImpl.COORD_NAME);
+		this.name = "";
+		registery.bind(this.name, this);
 	}
 	
   /**
@@ -53,9 +66,17 @@ public class JvnServerImpl
 	/**
 	* The JVN service is not used anymore
 	* @throws JvnException
+	 * @throws  
 	**/
 	public  void jvnTerminate()
 	throws jvn.JvnException {
+		try {
+			this.coord.jvnTerminate(this);	
+		} catch (RemoteException e){
+			throw new RuntimeException(e);
+		}
+		this.objects.clear();
+		
     // to be completed 
 	} 
 	
@@ -67,7 +88,8 @@ public class JvnServerImpl
 	public  JvnObject jvnCreateObject(Serializable o)
 	throws jvn.JvnException { 
 		// to be completed 
-		return null; 
+		JvnObject jvnObject = new JvnObjectImpl(o, this);
+		return jvnObject; 
 	}
 	
 	/**
@@ -78,7 +100,11 @@ public class JvnServerImpl
 	**/
 	public  void jvnRegisterObject(String jon, JvnObject jo)
 	throws jvn.JvnException {
-		// to be completed 
+		try {
+			this.coord.jvnRegisterObject(jon, jo, this);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	/**
@@ -101,7 +127,6 @@ public class JvnServerImpl
 	**/
    public Serializable jvnLockRead(int joi)
 	 throws JvnException {
-		// to be completed 
 		return null;
 
 	}	
