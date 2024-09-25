@@ -10,6 +10,7 @@
 package jvn;
 
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
 import java.io.Serializable;
 
 
@@ -22,6 +23,8 @@ public class JvnCoordImpl
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private HashMap<String, sharedObject> sharedObjects;
 
 /**
   * Default constructor
@@ -29,6 +32,7 @@ public class JvnCoordImpl
   **/
 	private JvnCoordImpl() throws Exception {
 		// to be completed
+		this.sharedObjects = new HashMap<>();
 	}
 
   /**
@@ -100,6 +104,10 @@ public class JvnCoordImpl
 	**/
     public void jvnTerminate(JvnRemoteServer js)
 	 throws java.rmi.RemoteException, JvnException {
+    	for (String uid: this.sharedObjects.keySet()) {
+    		sharedObject tmp = this.sharedObjects.get(uid);
+    		tmp.removeLockState(js);
+    	}
 	 // to be completed
     }
 }
