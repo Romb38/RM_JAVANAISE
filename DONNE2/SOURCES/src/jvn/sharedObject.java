@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 public class sharedObject {
 	
 	// Unique identifier of the object
-	private int uid;
+	private String name;
 	
 	// (Value) of the object
 	private JvnObject state;
@@ -15,14 +15,14 @@ public class sharedObject {
 	private HashMap<JvnRemoteServer, LockStates> lockStateByServer;
 	
 	
-	public sharedObject(int uid, JvnObject state) {
-		this.uid = uid;
+	public sharedObject(String name, JvnObject state) {
+		this.name = name;
 		this.state = state;
 		this.lockStateByServer = new HashMap<>();
 	}
 	
-	public int getUid() {
-		return uid;
+	public String getName() {
+		return this.name;
 	}
 
 	public JvnObject getState() {

@@ -33,7 +33,7 @@ public class JvnServerImpl
 	private Registry registery = null;
 	
 	private String name = "";
-	private HashMap<String, JvnObject> objects = new HashMap<>();
+	private HashMap<Integer, JvnObject> objects = new HashMap<>();
 
   /**
   * Default constructor
@@ -87,8 +87,17 @@ public class JvnServerImpl
 	**/
 	public  JvnObject jvnCreateObject(Serializable o)
 	throws jvn.JvnException { 
+		
+		Integer uid;
+		
+		try {
+			uid = this.coord.jvnGetObjectId();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
 		// to be completed 
-		JvnObject jvnObject = new JvnObjectImpl(o, this);
+		JvnObject jvnObject = new JvnObjectImpl(o, this, uid);
 		return jvnObject; 
 	}
 	
@@ -115,8 +124,11 @@ public class JvnServerImpl
 	**/
 	public  JvnObject jvnLookupObject(String jon)
 	throws jvn.JvnException {
-    // to be completed 
-		return null;
+		try {
+			return this.coord.jvnLookupObject(jon, this);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}	
 	
 	/**
@@ -127,8 +139,13 @@ public class JvnServerImpl
 	**/
    public Serializable jvnLockRead(int joi)
 	 throws JvnException {
-		return null;
-
+	   JvnObject obj = this.objects.get(joi);
+	   if (obj != null) {
+		   obj.jvnLockRead();
+		   return obj.jvnGetSharedObject();
+	   }
+	   return null;
+	  
 	}	
 	/**
 	* Get a Write lock on a JVN object 
@@ -137,9 +154,14 @@ public class JvnServerImpl
 	* @throws  JvnException
 	**/
    public Serializable jvnLockWrite(int joi)
-	 throws JvnException {
-		// to be completed 
-		return null;
+		   throws JvnException {
+	   JvnObject obj = this.objects.get(joi);
+	   if (obj != null) {
+		   obj.jvnLockWrite();
+		   return obj.jvnGetSharedObject();
+	   }
+	   return null;
+	  
 	}	
 
 	
@@ -152,7 +174,10 @@ public class JvnServerImpl
 	**/
   public void jvnInvalidateReader(int joi)
 	throws java.rmi.RemoteException,jvn.JvnException {
-		// to be completed 
+	   JvnObject obj = this.objects.get(joi);
+	   if (obj != null) {
+		   obj.jvnInvalidateReader();
+	   }
 	};
 	    
 	/**
@@ -163,8 +188,12 @@ public class JvnServerImpl
 	**/
   public Serializable jvnInvalidateWriter(int joi)
 	throws java.rmi.RemoteException,jvn.JvnException { 
-		// to be completed 
-		return null;
+	   JvnObject obj = this.objects.get(joi);
+	   if (obj != null) {
+		   obj.jvnInvalidateWriter();
+		   return obj.jvnGetSharedObject();
+	   }
+	   return null;
 	};
 	
 	/**
@@ -175,8 +204,12 @@ public class JvnServerImpl
 	**/
    public Serializable jvnInvalidateWriterForReader(int joi)
 	 throws java.rmi.RemoteException,jvn.JvnException { 
-		// to be completed 
-		return null;
+	   JvnObject obj = this.objects.get(joi);
+	   if (obj != null) {
+		   obj.jvnInvalidateWriterForReader();
+		   return obj.jvnGetSharedObject();
+	   }
+	   return null;
 	 };
 
 }

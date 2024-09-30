@@ -12,6 +12,7 @@ package jvn;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.io.Serializable;
@@ -29,7 +30,7 @@ public class JvnCoordImpl
 	public static final int COORD_PORT = 1234;
 	public static final String COORD_NAME = "coordinator";
 	
-	private HashMap<String, sharedObject> sharedObjects;
+	private HashMap<Integer, sharedObject> sharedObjects;
 
 /**
   * Default constructor
@@ -48,8 +49,14 @@ public class JvnCoordImpl
   * @throws java.rmi.RemoteException,JvnException
   **/
   public int jvnGetObjectId()
-  throws java.rmi.RemoteException,jvn.JvnException { 
-	  return this.sharedObjects.values().stream().max(Comparator.comparingInt(sharedObject::getUid)).get().getUid() + 1;
+  throws java.rmi.RemoteException,jvn.JvnException {
+      // Si la HashMap est vide, retourner 1 directement
+      if (this.sharedObjects.isEmpty()) {
+          return 1;
+      }
+      // Trouver la clé maximum et ajouter 1
+      int maxKey = Collections.max(this.sharedObjects.keySet());
+      return maxKey + 1;  
   }
   
   /**
@@ -63,9 +70,9 @@ public class JvnCoordImpl
   public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
     // to be completed
-	  sharedObject tmp = new sharedObject(this.jvnGetObjectId(),jo);
+	  sharedObject tmp = new sharedObject(jon,jo);
 	  tmp.createOrSetLockState(js, LockStates.NL);
-	  this.sharedObjects.put(jon, tmp);
+	  this.sharedObjects.put(this.jvnGetObjectId(), tmp);
   }
   
   /**
@@ -76,7 +83,15 @@ public class JvnCoordImpl
   **/
   public JvnObject jvnLookupObject(String jon, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
-	  sharedObject obj = this.sharedObjects.get(jon);
+	  
+	   sharedObject obj = null;
+	   for (sharedObject state : this.sharedObjects.values()) {
+		   if (state.getName() == jon) {
+			   obj = state;
+			   break;
+		   }
+	   }
+	   
 	  
 	  if (obj == null) {
 		 throw new jvn.JvnException("The " + jon + " JVN object doesn't exist");
@@ -85,7 +100,7 @@ public class JvnCoordImpl
 	  while (!obj.isReadableBy(js)) {
 		  // [TODO] Wait
 	  }
-	  
+	  	  
 	  return obj.getState();
   }
   
@@ -98,14 +113,8 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockRead(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-	   sharedObject state = null;
-	   for (sharedObject obj : this.sharedObjects.values()) {
-		   if (obj.getUid() == joi) {
-			   state = obj;
-			   break;
-		   }
-	   }
-	   
+	   sharedObject state = this.sharedObjects.get(joi);
+
 	   if (state == null) {
 		   throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
 	   }
@@ -128,13 +137,7 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-	   sharedObject state = null;
-	   for (sharedObject obj : this.sharedObjects.values()) {
-		   if (obj.getUid() == joi) {
-			   state = obj;
-			   break;
-		   }
-	   }
+	   sharedObject state = this.sharedObjects.get(joi);
 	   
 	   if (state == null) {
 		   throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
@@ -156,7 +159,7 @@ public class JvnCoordImpl
 	**/
     public void jvnTerminate(JvnRemoteServer js)
 	 throws java.rmi.RemoteException, JvnException {
-    	for (String uid: this.sharedObjects.keySet()) {
+    	for (Integer uid: this.sharedObjects.keySet()) {
     		sharedObject tmp = this.sharedObjects.get(uid);
     		tmp.removeLockState(js);
     	}
