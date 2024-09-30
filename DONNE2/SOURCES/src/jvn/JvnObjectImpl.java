@@ -5,13 +5,13 @@ import java.io.Serializable;
 public class JvnObjectImpl implements JvnObject {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private int uid;
-	
+
 	private Serializable objValue;
 
 	private LockStates lockState;
-	
+
 	private JvnLocalServer localServer;
 
 	public JvnObjectImpl(Serializable o, JvnLocalServer js, Integer uid) {
@@ -23,20 +23,29 @@ public class JvnObjectImpl implements JvnObject {
 
 	@Override
 	public void jvnLockRead() throws JvnException {
-		// TODO Auto-generated method stub
-
+		if (!LockStates.R.equals(this.lockState)) {
+			this.localServer.jvnLockRead(this.uid);
+			this.lockState = LockStates.R;
+		}
 	}
 
 	@Override
 	public void jvnLockWrite() throws JvnException {
-		// TODO Auto-generated method stub
-
+		if (!LockStates.W.equals(this.lockState)) {
+			this.localServer.jvnLockWrite(this.uid);
+			this.lockState = LockStates.W;
+		}
 	}
 
 	@Override
 	public void jvnUnLock() throws JvnException {
-		// TODO Auto-generated method stub
-
+		if (LockStates.W.equals(this.lockState)) {
+			this.lockState = LockStates.WC;
+			this.notify();
+		} else if (LockStates.R.equals(this.lockState) || LockStates.WC.equals(this.lockState)) {
+			this.lockState = LockStates.RC;
+			this.notify();
+		}
 	}
 
 	@Override
@@ -51,20 +60,43 @@ public class JvnObjectImpl implements JvnObject {
 
 	@Override
 	public void jvnInvalidateReader() throws JvnException {
-		// TODO Auto-generated method stub
-
+		while (!LockStates.RC.equals(lockState)) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		this.lockState = LockStates.NL;
 	}
 
 	@Override
 	public Serializable jvnInvalidateWriter() throws JvnException {
-		// TODO Auto-generated method stub
-		return null;
+		while (!LockStates.WC.equals(lockState)) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		this.lockState = LockStates.NL;
+		return this.jvnGetSharedObject();
 	}
 
 	@Override
 	public Serializable jvnInvalidateWriterForReader() throws JvnException {
-		// TODO Auto-generated method stub
-		return null;
+		while (!LockStates.WC.equals(lockState)) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		this.lockState = LockStates.R;
+		return this.jvnGetSharedObject();
 	}
 
 }
