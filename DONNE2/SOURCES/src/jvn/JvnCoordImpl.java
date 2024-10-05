@@ -97,10 +97,14 @@ public class JvnCoordImpl
 		 throw new jvn.JvnException("The " + jon + " JVN object doesn't exist");
 	  }
 	  
+	  obj.createOrSetLockState(js, LockStates.R);
 	  while (!obj.isReadableBy(js)) {
-		  // [TODO] Wait
+		  try {
+			this.wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	  }
-	  	  
 	  return obj.getState();
   }
   
@@ -144,7 +148,11 @@ public class JvnCoordImpl
 	   }
 	   
 	   while(!state.canBeWriteBy(js)) {
-		   // [TODO] Wait
+		   try {
+			this.wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	   }
 	   
 	   state.createOrSetLockState(js, LockStates.W);
@@ -163,7 +171,6 @@ public class JvnCoordImpl
     		sharedObject tmp = this.sharedObjects.get(uid);
     		tmp.removeLockState(js);
     	}
-	 // to be completed
     }
 }
 

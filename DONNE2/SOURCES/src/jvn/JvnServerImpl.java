@@ -32,7 +32,6 @@ public class JvnServerImpl
 	private JvnRemoteCoord coord = null;
 	private Registry registery = null;
 	
-	private String name = "";
 	private HashMap<Integer, JvnObject> objects = new HashMap<>();
 
   /**
@@ -42,9 +41,11 @@ public class JvnServerImpl
 	private JvnServerImpl() throws Exception {
 		super();
 		this.registery = LocateRegistry.getRegistry(JvnCoordImpl.COORD_PORT);
-		this.coord = (JvnRemoteCoord) registery.lookup(JvnCoordImpl.COORD_NAME);
-		this.name = "";
-		registery.bind(this.name, this);
+		try {
+			this.coord = (JvnRemoteCoord) registery.lookup(JvnCoordImpl.COORD_NAME);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
 	}
 	
   /**
@@ -98,6 +99,7 @@ public class JvnServerImpl
 		
 		// to be completed 
 		JvnObject jvnObject = new JvnObjectImpl(o, this, uid);
+		this.objects.put(uid, jvnObject);
 		return jvnObject; 
 	}
 	
@@ -124,11 +126,17 @@ public class JvnServerImpl
 	**/
 	public  JvnObject jvnLookupObject(String jon)
 	throws jvn.JvnException {
+		JvnObject obj = null;
 		try {
-			return this.coord.jvnLookupObject(jon, this);
+			obj = this.coord.jvnLookupObject(jon, this);
+			if (obj != null) {
+				JvnObject nObj = new JvnObjectImpl(obj.jvnGetSharedObject(), this, obj.jvnGetObjectId());
+				this.objects.put(nObj.jvnGetObjectId(),nObj);
+			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+		return obj;
 	}	
 	
 	/**
@@ -139,12 +147,14 @@ public class JvnServerImpl
 	**/
    public Serializable jvnLockRead(int joi)
 	 throws JvnException {
-	   JvnObject obj = this.objects.get(joi);
-	   if (obj != null) {
-		   obj.jvnLockRead();
-		   return obj.jvnGetSharedObject();
+	   Serializable obj = this.objects.get(joi).jvnGetSharedObject();
+	   try {
+		   obj = this.coord.jvnLockRead(joi, js);
+	   } catch (RemoteException e) {
+		// TODO Auto-generated catch block
+		   e.printStackTrace();
 	   }
-	   return null;
+	   return obj;
 	  
 	}	
 	/**
@@ -155,13 +165,14 @@ public class JvnServerImpl
 	**/
    public Serializable jvnLockWrite(int joi)
 		   throws JvnException {
-	   JvnObject obj = this.objects.get(joi);
-	   if (obj != null) {
-		   obj.jvnLockWrite();
-		   return obj.jvnGetSharedObject();
+	   Serializable obj = this.objects.get(joi).jvnGetSharedObject();;
+	   try {
+		   obj = this.coord.jvnLockWrite(joi, js);
+	   } catch (RemoteException e) {
+		// TODO Auto-generated catch block
+		   e.printStackTrace();
 	   }
-	   return null;
-	  
+	   return obj;
 	}	
 
 	
