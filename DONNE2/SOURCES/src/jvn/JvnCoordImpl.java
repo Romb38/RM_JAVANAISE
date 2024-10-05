@@ -36,7 +36,7 @@ public class JvnCoordImpl
   * Default constructor
   * @throws JvnException
   **/
-	private JvnCoordImpl() throws Exception {
+	public JvnCoordImpl() throws Exception {
 		// to be completed
 		this.sharedObjects = new HashMap<>();
 		Registry registry = LocateRegistry.createRegistry(COORD_PORT);
