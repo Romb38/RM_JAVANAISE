@@ -72,6 +72,7 @@ public class JvnCoordImpl
     // to be completed
 	  sharedObject tmp = new sharedObject(jon,jo);
 	  tmp.createOrSetLockState(js, LockStates.NL);
+	  this.notifyAll();
 	  this.sharedObjects.put(this.jvnGetObjectId(), tmp);
   }
   
@@ -124,7 +125,11 @@ public class JvnCoordImpl
 	   }
 	   
 	   while(!state.canBeReadBy(js)) {
-		   // [TODO] Wait
+		   try {
+			this.wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	   }
 	   
 	   state.createOrSetLockState(js, LockStates.R);

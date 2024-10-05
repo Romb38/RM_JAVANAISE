@@ -41,10 +41,10 @@ public class JvnObjectImpl implements JvnObject {
 	public void jvnUnLock() throws JvnException {
 		if (LockStates.W.equals(this.lockState)) {
 			this.lockState = LockStates.WC;
-			this.notify();
+			this.notifyAll();
 		} else if (LockStates.R.equals(this.lockState) || LockStates.WC.equals(this.lockState)) {
 			this.lockState = LockStates.RC;
-			this.notify();
+			this.notifyAll();
 		}
 	}
 
