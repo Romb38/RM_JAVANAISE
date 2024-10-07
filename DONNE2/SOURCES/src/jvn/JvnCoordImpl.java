@@ -40,7 +40,7 @@ public class JvnCoordImpl
 		// to be completed
 		this.sharedObjects = new HashMap<>();
 		Registry registry = LocateRegistry.createRegistry(COORD_PORT);
-		registry.bind(COORD_NAME, registry);
+		registry.bind(COORD_NAME, this);
 	}
 
   /**
@@ -92,11 +92,9 @@ public class JvnCoordImpl
 			   break;
 		   }
 	   }
-	   
-	  
-	  if (obj == null) {
-		 throw new jvn.JvnException("The " + jon + " JVN object doesn't exist");
-	  }
+	   if(obj == null) {
+		   return null;
+	   }
 	  
 	  obj.createOrSetLockState(js, LockStates.R);
 	  while (!obj.isReadableBy(js)) {
