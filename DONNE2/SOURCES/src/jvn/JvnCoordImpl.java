@@ -136,7 +136,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 		state.invalidateReadAllOthers(js);
 		state.createOrSetLockState(js, LockStates.R);
 
-		return state.getState();
+		return state.getState().jvnGetSharedObject();
 	}
 
 	/**
@@ -169,7 +169,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 		state.invalidateWriteAllOthers(js);
 		state.createOrSetLockState(js, LockStates.W);
 
-		return state.getState();
+		return state.getState().jvnGetSharedObject();
 	}
 
 	/**

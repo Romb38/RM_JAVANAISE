@@ -128,7 +128,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 		try {
 			obj = this.coord.jvnLookupObject(jon, js);
 			if (obj != null) {
-				JvnObject nObj = new JvnObjectImpl(obj.jvnGetSharedObject(), this, obj.jvnGetObjectId());
+				JvnObjectImpl nObj = new JvnObjectImpl(obj.jvnGetSharedObject(), this, obj.jvnGetObjectId());
 				this.objects.put(nObj.jvnGetObjectId(), nObj);
 			}
 		} catch (Exception e) {
@@ -145,15 +145,15 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @throws JvnException
 	 **/
 	public Serializable jvnLockRead(int joi) throws JvnException {
-		Serializable obj = this.objects.get(joi).jvnGetSharedObject();
+		JvnObjectImpl jvnObject = (JvnObjectImpl) this.objects.get(joi);
 		try {
-			obj = this.coord.jvnLockRead(joi, js);
+			Serializable obj = this.coord.jvnLockRead(joi, js);
+			jvnObject.setObjValue(obj);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return obj;
-
+		return jvnObject.jvnGetSharedObject();
 	}
 
 	/**
@@ -164,15 +164,15 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @throws JvnException
 	 **/
 	public Serializable jvnLockWrite(int joi) throws JvnException {
-		Serializable obj = this.objects.get(joi).jvnGetSharedObject();
-		;
+		JvnObjectImpl jvnObject = (JvnObjectImpl) this.objects.get(joi);
 		try {
-			obj = this.coord.jvnLockWrite(joi, js);
+			Serializable obj = this.coord.jvnLockWrite(joi, js);
+			jvnObject.setObjValue(obj);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return obj;
+		return jvnObject.jvnGetSharedObject();
 	}
 
 	/**

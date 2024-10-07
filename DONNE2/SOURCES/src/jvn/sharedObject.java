@@ -3,6 +3,7 @@ package jvn;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class sharedObject {
 
@@ -99,18 +100,18 @@ public class sharedObject {
 	}
 
 	public void invalidateReadAllOthers(JvnRemoteServer server) throws RemoteException, JvnException {
-		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet()) {
-			if (obj.getKey() != server) {
-				obj.getKey().jvnInvalidateReader(state.jvnGetObjectId());
-			}
+		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet().stream()
+				.filter(object -> object.getKey() != server && LockStates.W.equals(object.getValue()))
+				.collect(Collectors.toList())) {
+			state.setObjValue(obj.getKey().jvnInvalidateWriter(state.jvnGetObjectId()));
 		}
 	}
 
 	public void invalidateWriteAllOthers(JvnRemoteServer server) throws RemoteException, JvnException {
-		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet()) {
-			if (obj.getKey() != server) {
-				state.setObjValue(obj.getKey().jvnInvalidateWriter(state.jvnGetObjectId()));
-			}
+		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet().stream()
+				.filter(object -> object.getKey() != server && LockStates.R.equals(object.getValue()))
+				.collect(Collectors.toList())) {
+			obj.getKey().jvnInvalidateReader(state.jvnGetObjectId());
 		}
 	}
 

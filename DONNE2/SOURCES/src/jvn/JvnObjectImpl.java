@@ -35,7 +35,7 @@ public class JvnObjectImpl implements JvnObject {
 			this.lock.lock();
 		}
 		if (!LockStates.R.equals(this.lockState) && !LockStates.RC.equals(this.lockState)) {
-			this.localServer.jvnLockRead(this.uid);
+			this.objValue = this.localServer.jvnLockRead(this.uid);
 			this.lockState = LockStates.R;
 		} else if (LockStates.RC.equals(this.lockState)) {
 			this.lockState = LockStates.R;
@@ -48,7 +48,7 @@ public class JvnObjectImpl implements JvnObject {
 			this.lock.lock();
 		}
 		if (!LockStates.W.equals(this.lockState) && !LockStates.WC.equals(this.lockState)) {
-			this.localServer.jvnLockWrite(this.uid);
+			this.objValue = this.localServer.jvnLockWrite(this.uid);
 			this.lockState = LockStates.W;
 		} else if (LockStates.WC.equals(this.lockState)) {
 			this.lockState = LockStates.W;
