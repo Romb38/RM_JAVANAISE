@@ -14,6 +14,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.io.Serializable;
 
 public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord {
@@ -72,6 +73,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 		tmp.createOrSetLockState(js, LockStates.NL);
 		this.sharedObjects.put(this.jvnGetObjectId(), tmp);
 	}
+	
+	private void logRegisteredObjects() {
+	    System.out.println("Objet(s) enregistré(s) dans le coordinateur :");
+	    for (Entry<Integer, sharedObject> entry : this.sharedObjects.entrySet()) {
+	        System.out.println("ID de l'objet" + entry.getKey() + ", Nom : " + entry.getValue().getName());
+	    }
+	}
 
 	/**
 	 * Get the reference of a JVN object managed by a given JVN server
@@ -84,8 +92,10 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 			throws java.rmi.RemoteException, jvn.JvnException {
 
 		sharedObject obj = null;
+		System.out.println(jon);
+		logRegisteredObjects();
 		for (sharedObject state : this.sharedObjects.values()) {
-			if (state.getName() == jon) {
+			if (state.getName().equals(jon)) {
 				obj = state;
 				break;
 			}
@@ -132,9 +142,12 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 //				}
 //			}
 //		}
+	    System.out.println("Instance " + js + " demande un verrou en lecture sur l'objet ID: " + joi);
 
 		state.invalidateReadAllOthers(js);
 		state.createOrSetLockState(js, LockStates.R);
+		
+	    System.out.println("Verrou en lecture accordé à l'instance " + js);
 
 		return state.getState().jvnGetSharedObject();
 	}
@@ -166,8 +179,12 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 //			}
 //		}
 		
+	    System.out.println("Instance " + js + " demande un verrou en écriture sur l'objet ID: " + joi);
+		
 		state.invalidateWriteAllOthers(js);
 		state.createOrSetLockState(js, LockStates.W);
+		
+	    System.out.println("Verrou en écriture accordé à l'instance " + js);
 
 		return state.getState().jvnGetSharedObject();
 	}

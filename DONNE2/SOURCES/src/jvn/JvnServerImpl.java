@@ -40,6 +40,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 		this.registery = LocateRegistry.getRegistry(JvnCoordImpl.COORD_PORT);
 		try {
 			this.coord = (JvnRemoteCoord) registery.lookup(JvnCoordImpl.COORD_NAME);
+			System.out.println("Connexion au coordinateur réussie : " + coord);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -86,20 +87,18 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @throws JvnException
 	 **/
 	public JvnObject jvnCreateObject(Serializable o) throws jvn.JvnException {
-
-		Integer uid;
-
-		try {
-			uid = this.coord.jvnGetObjectId();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		// to be completed
-		JvnObject jvnObject = new JvnObjectImpl(o, js, uid);
-		this.objects.put(uid, jvnObject);
-		return jvnObject;
+	    Integer uid;
+	    try {
+	        uid = this.coord.jvnGetObjectId();
+	        System.out.println("Création d'un nouvel objet avec ID: " + uid);
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+	    }
+	    JvnObject jvnObject = new JvnObjectImpl(o, js, uid);
+	    this.objects.put(uid, jvnObject);
+	    return jvnObject;
 	}
+
 
 	/**
 	 * Associate a symbolic name with a JVN object
@@ -109,11 +108,12 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @throws JvnException
 	 **/
 	public void jvnRegisterObject(String jon, JvnObject jo) throws jvn.JvnException {
-		try {
-			this.coord.jvnRegisterObject(jon, jo, js);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	    try {
+	        System.out.println("Enregistrement de l'objet: " + jon + " avec ID: " + jo.jvnGetObjectId());
+	        this.coord.jvnRegisterObject(jon, jo, js);
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+	    }
 	}
 
 	/**
@@ -124,17 +124,22 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @throws JvnException
 	 **/
 	public JvnObject jvnLookupObject(String jon) throws jvn.JvnException {
-		JvnObject obj = null;
-		try {
-			obj = this.coord.jvnLookupObject(jon, js);
-			if (obj != null) {
-				JvnObjectImpl nObj = new JvnObjectImpl(obj.jvnGetSharedObject(), this, obj.jvnGetObjectId());
-				this.objects.put(nObj.jvnGetObjectId(), nObj);
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return obj;
+	    JvnObject obj = null;
+	    JvnObjectImpl nObj = null;
+	    try {
+	        System.out.println("Recherche de l'objet: " + jon);
+	        obj = this.coord.jvnLookupObject(jon, js);
+	        if (obj != null) {
+	            System.out.println("Objet trouvé: " + jon + " avec ID: " + obj.jvnGetObjectId());
+	            nObj = new JvnObjectImpl(obj.jvnGetSharedObject(), this, obj.jvnGetObjectId());
+	            this.objects.put(nObj.jvnGetObjectId(), nObj);
+	        } else {
+	            System.out.println("Objet non trouvé: " + jon);
+	        }
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+	    }
+	    return nObj;
 	}
 
 	/**
@@ -144,17 +149,19 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @return the current JVN object state
 	 * @throws JvnException
 	 **/
-	public Serializable jvnLockRead(int joi) throws JvnException {
-		JvnObjectImpl jvnObject = (JvnObjectImpl) this.objects.get(joi);
-		try {
-			Serializable obj = this.coord.jvnLockRead(joi, js);
-			jvnObject.setObjValue(obj);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return jvnObject.jvnGetSharedObject();
+	public synchronized Serializable jvnLockRead(int joi) throws JvnException {
+	    System.out.println("Demande de verrou en lecture pour l'objet ID: " + joi);
+	    JvnObjectImpl jvnObject = (JvnObjectImpl) this.objects.get(joi);
+	    try {
+	        Serializable obj = this.coord.jvnLockRead(joi, js);
+	        System.out.println("Verrou en lecture obtenu pour l'objet ID: " + joi);
+	        jvnObject.setObjValue(obj);
+	    } catch (RemoteException e) {
+	        e.printStackTrace();
+	    }
+	    return jvnObject.jvnGetSharedObject();
 	}
+
 
 	/**
 	 * Get a Write lock on a JVN object
@@ -164,15 +171,16 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @throws JvnException
 	 **/
 	public Serializable jvnLockWrite(int joi) throws JvnException {
-		JvnObjectImpl jvnObject = (JvnObjectImpl) this.objects.get(joi);
-		try {
-			Serializable obj = this.coord.jvnLockWrite(joi, js);
-			jvnObject.setObjValue(obj);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return jvnObject.jvnGetSharedObject();
+	    System.out.println("Demande de verrou en écriture pour l'objet ID: " + joi);
+	    JvnObjectImpl jvnObject = (JvnObjectImpl) this.objects.get(joi);
+	    try {
+	        Serializable obj = this.coord.jvnLockWrite(joi, js);
+	        System.out.println("Verrou en écriture obtenu pour l'objet ID: " + joi);
+	        jvnObject.setObjValue(obj);
+	    } catch (RemoteException e) {
+	        e.printStackTrace();
+	    }
+	    return jvnObject.jvnGetSharedObject();
 	}
 
 	/**
