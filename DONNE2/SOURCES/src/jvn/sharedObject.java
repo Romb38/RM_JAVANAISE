@@ -103,7 +103,7 @@ public class sharedObject {
 		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet().stream()
 				.filter(object -> object.getKey() != server && LockStates.W.equals(object.getValue()))
 				.collect(Collectors.toList())) {
-			state.setObjValue(obj.getKey().jvnInvalidateWriter(state.jvnGetObjectId()));
+			state.setObjValue(obj.getKey().jvnInvalidateWriterForReader(state.jvnGetObjectId()));
 		}
 	}
 
@@ -113,13 +113,11 @@ public class sharedObject {
 				.collect(Collectors.toList())) {
 			obj.getKey().jvnInvalidateReader(state.jvnGetObjectId());
 		}
-	}
-
-	public void invalidateWriteToReadAllOthers(JvnRemoteServer server) throws RemoteException, JvnException {
-		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet()) {
-			if (obj.getKey() != server) {
-				state.setObjValue(obj.getKey().jvnInvalidateWriterForReader(state.jvnGetObjectId()));
-			}
+		
+		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet().stream()
+				.filter(object -> object.getKey() != server && LockStates.W.equals(object.getValue()))
+				.collect(Collectors.toList())) {
+			obj.getKey().jvnInvalidateWriter(state.jvnGetObjectId());
 		}
 	}
 }

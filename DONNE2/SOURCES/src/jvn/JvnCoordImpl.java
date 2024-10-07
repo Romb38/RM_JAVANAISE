@@ -148,17 +148,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 		if (state == null) {
 			throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
 		}
-
-//		synchronized (this) {
-//			while (!state.canBeWriteBy(js)) {
-//				try {
-//					this.wait();
-//
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}
 		
 	    System.out.println("Instance " + js + " demande un verrou en écriture sur l'objet ID: " + joi);
 		
