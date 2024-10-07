@@ -127,14 +127,10 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	    JvnObject obj = null;
 	    JvnObjectImpl nObj = null;
 	    try {
-	        System.out.println("Recherche de l'objet: " + jon);
 	        obj = this.coord.jvnLookupObject(jon, js);
 	        if (obj != null) {
-	            System.out.println("Objet trouvé: " + jon + " avec ID: " + obj.jvnGetObjectId());
 	            nObj = new JvnObjectImpl(obj.jvnGetSharedObject(), this, obj.jvnGetObjectId());
 	            this.objects.put(nObj.jvnGetObjectId(), nObj);
-	        } else {
-	            System.out.println("Objet non trouvé: " + jon);
 	        }
 	    } catch (Exception e) {
 	        throw new RuntimeException(e);
@@ -150,11 +146,9 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @throws JvnException
 	 **/
 	public synchronized Serializable jvnLockRead(int joi) throws JvnException {
-	    System.out.println("Demande de verrou en lecture pour l'objet ID: " + joi);
 	    JvnObjectImpl jvnObject = (JvnObjectImpl) this.objects.get(joi);
 	    try {
 	        Serializable obj = this.coord.jvnLockRead(joi, js);
-	        System.out.println("Verrou en lecture obtenu pour l'objet ID: " + joi);
 	        jvnObject.setObjValue(obj);
 	    } catch (RemoteException e) {
 	        e.printStackTrace();
