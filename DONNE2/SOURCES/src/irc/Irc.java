@@ -20,6 +20,8 @@ public class Irc {
 	public TextField	data;
 	Frame 			frame;
 	JvnObject       sentence;
+	JvnServerImpl js;
+	
 
 
   /**
@@ -43,7 +45,7 @@ public class Irc {
 			js.jvnRegisterObject("IRC", jo);
 		}
 		// create the graphical part of the Chat application
-		 new Irc(jo);
+		 new Irc(jo, js);
 	   
 	   } catch (Exception e) {
 		   System.out.println("IRC problem : " + e.getMessage());
@@ -54,8 +56,9 @@ public class Irc {
    * IRC Constructor
    @param jo the JVN object representing the Chat
    **/
-	public Irc(JvnObject jo) {
+	public Irc(JvnObject jo, JvnServerImpl js) {
 		sentence = jo;
+		this.js = js;
 		frame=new Frame();
 		frame.setLayout(new GridLayout(1,1));
 		text=new TextArea(10,60);
@@ -70,6 +73,23 @@ public class Irc {
 		Button write_button = new Button("write");
 		write_button.addActionListener(new writeListener(this));
 		frame.add(write_button);
+		
+	    // Ajout du bouton Close
+	    Button close_button = new Button("Close");
+	    close_button.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	try {
+					js.jvnTerminate();
+				} catch (JvnException e1) {
+					e1.printStackTrace();
+				}
+	            frame.dispose(); // Cela fermera la fenêtre
+	        }
+	    });
+	    frame.add(close_button);
+	    
+	    
 		frame.setSize(545,201);
 		text.setBackground(Color.black); 
 		frame.setVisible(true);
