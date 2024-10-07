@@ -33,12 +33,25 @@ public class JvnObjectImpl implements JvnObject {
 	public void jvnLockRead() throws JvnException {
 		if (LockStates.NL.equals(this.lockState)) {
 			this.lock.lock();
+			this.objValue=this.localServer.jvnLockRead(this.uid);
 		}
-		if (!LockStates.R.equals(this.lockState) && !LockStates.RC.equals(this.lockState)) {
-			this.objValue = this.localServer.jvnLockRead(this.uid);
+//		if (!LockStates.R.equals(this.lockState) && !LockStates.RC.equals(this.lockState)) {
+//			this.lockState = LockStates.R;
+//		} else if (LockStates.RC.equals(this.lockState)) {
+//			this.lockState = LockStates.R;
+//		}
+		
+		switch (this.lockState) {
+		case NL:
 			this.lockState = LockStates.R;
-		} else if (LockStates.RC.equals(this.lockState)) {
+			break;
+		case W: 
 			this.lockState = LockStates.R;
+			break;
+		case RC:
+			this.lockState = LockStates.R;
+		default:
+			break;
 		}
 	}
 
@@ -47,21 +60,37 @@ public class JvnObjectImpl implements JvnObject {
 		if (LockStates.NL.equals(this.lockState)) {
 			this.lock.lock();
 		}
-		if (!LockStates.W.equals(this.lockState) && !LockStates.WC.equals(this.lockState)) {
-			this.objValue = this.localServer.jvnLockWrite(this.uid);
+//		if (!LockStates.W.equals(this.lockState) && !LockStates.WC.equals(this.lockState)) {
+//			this.objValue = this.localServer.jvnLockWrite(this.uid);
+//			this.lockState = LockStates.W;
+//		} else if (LockStates.WC.equals(this.lockState)) {
+//			this.lockState = LockStates.W;
+//		}
+		
+		switch (this.lockState) {
+		case WC:
 			this.lockState = LockStates.W;
-		} else if (LockStates.WC.equals(this.lockState)) {
-			this.lockState = LockStates.W;
-		}
+			break;
+		case W: 
+			break;
+		default:
+			this.objValue=this.localServer.jvnLockWrite(this.uid);
+			this.lockState=LockStates.W;
+		}	
 	}
 
 	@Override
 	public void jvnUnLock() throws JvnException {
 		synchronized (this) {
-			if (LockStates.W.equals(this.lockState)) {
-				this.lockState = LockStates.WC;
-			} else if (LockStates.R.equals(this.lockState) || LockStates.WC.equals(this.lockState)) {
-				this.lockState = LockStates.RC;
+			switch(this.lockState) {
+			case R:
+				this.lockState=LockStates.RC;
+				break;
+			case W:
+				this.lockState=LockStates.WC;
+				break;
+			default:
+				break;
 			}
 			if (this.lock.isLocked()) {
 				this.lock.unlock();
@@ -100,14 +129,21 @@ public class JvnObjectImpl implements JvnObject {
 	}
 
 	@Override
-	public Serializable jvnInvalidateWriterForReader() throws JvnException {
-		if (LockStates.W.equals(this.lockState)) {
+	public Serializable jvnInvalidateWriterForReader() throws JvnException {		
+		switch (this.lockState){
+        case W:
 			this.lock.lock();
 			this.lock.unlock();
-
-		}
-		this.lockState = LockStates.R;
-		return this.jvnGetSharedObject();
+            this.lockState = LockStates.RC;
+            break;
+        case RWC:
+        case WC:
+            this.lockState=LockStates.RC;
+            break;
+        default:
+            
+    }
+    return this.objValue;
 	}
 
 }

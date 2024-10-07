@@ -104,16 +104,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 			return null;
 		}
 
-//		synchronized (this) {
-//			obj.createOrSetLockState(js, LockStates.R);
-//			while (!obj.isReadableBy(js)) {
-//				try {
-//					this.wait();
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}
 		return obj.getState();
 	}
 
@@ -133,15 +123,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 			throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
 		}
 
-//		synchronized (this) {
-//			while (!state.canBeReadBy(js)) {
-//				try {
-//					this.wait();
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}
 	    System.out.println("Instance " + js + " demande un verrou en lecture sur l'objet ID: " + joi);
 
 		state.invalidateReadAllOthers(js);
