@@ -72,7 +72,7 @@ public class JvnServerImpl
 	public  void jvnTerminate()
 	throws jvn.JvnException {
 		try {
-			this.coord.jvnTerminate(this);	
+			this.coord.jvnTerminate(js);	
 		} catch (RemoteException e){
 			throw new RuntimeException(e);
 		}
@@ -98,7 +98,7 @@ public class JvnServerImpl
 		}
 		
 		// to be completed 
-		JvnObject jvnObject = new JvnObjectImpl(o, this, uid);
+		JvnObject jvnObject = new JvnObjectImpl(o, js, uid);
 		this.objects.put(uid, jvnObject);
 		return jvnObject; 
 	}
@@ -112,7 +112,7 @@ public class JvnServerImpl
 	public  void jvnRegisterObject(String jon, JvnObject jo)
 	throws jvn.JvnException {
 		try {
-			this.coord.jvnRegisterObject(jon, jo, this);
+			this.coord.jvnRegisterObject(jon, jo, js);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -128,7 +128,7 @@ public class JvnServerImpl
 	throws jvn.JvnException {
 		JvnObject obj = null;
 		try {
-			obj = this.coord.jvnLookupObject(jon, this);
+			obj = this.coord.jvnLookupObject(jon, js);
 			if (obj != null) {
 				JvnObject nObj = new JvnObjectImpl(obj.jvnGetSharedObject(), this, obj.jvnGetObjectId());
 				this.objects.put(nObj.jvnGetObjectId(),nObj);

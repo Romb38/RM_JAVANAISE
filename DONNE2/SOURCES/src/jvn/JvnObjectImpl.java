@@ -12,7 +12,7 @@ public class JvnObjectImpl implements JvnObject {
 
 	private LockStates lockState;
 
-	private JvnLocalServer localServer;
+	private transient JvnLocalServer localServer;
 
 	public JvnObjectImpl(Serializable o, JvnLocalServer js, Integer uid) {
 		this.objValue = o;

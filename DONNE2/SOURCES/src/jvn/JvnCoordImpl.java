@@ -72,7 +72,6 @@ public class JvnCoordImpl
     // to be completed
 	  sharedObject tmp = new sharedObject(jon,jo);
 	  tmp.createOrSetLockState(js, LockStates.NL);
-	  this.notifyAll();
 	  this.sharedObjects.put(this.jvnGetObjectId(), tmp);
   }
   
