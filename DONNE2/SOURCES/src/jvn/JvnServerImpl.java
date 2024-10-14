@@ -76,8 +76,6 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 			throw new RuntimeException(e);
 		}
 		this.objects.clear();
-
-		// to be completed
 	}
 
 	/**
