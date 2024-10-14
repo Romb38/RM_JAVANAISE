@@ -1,5 +1,7 @@
 package irc;
 
+import java.io.Serializable;
+
 import jvn.MyAnotation;
 public interface Operation extends Serializable{
 	
