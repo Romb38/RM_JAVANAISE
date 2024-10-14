@@ -81,7 +81,6 @@ public class JvnObjectImpl implements JvnObject {
 			default:
 				break;
 			}
-			setObjValue(null);
 			if (this.lock.isLocked()) {
 				this.lock.unlock();
 			}
@@ -106,6 +105,7 @@ public class JvnObjectImpl implements JvnObject {
 
 		}
 		this.lockState = LockStates.NL;
+		setObjValue(null);
 	}
 
 	@Override
@@ -115,7 +115,9 @@ public class JvnObjectImpl implements JvnObject {
 			this.lock.unlock();
 		}
 		this.lockState = LockStates.NL;
-		return this.jvnGetSharedObject();
+		Serializable val = this.jvnGetSharedObject();
+		setObjValue(null);
+		return val;
 	}
 
 	@Override
