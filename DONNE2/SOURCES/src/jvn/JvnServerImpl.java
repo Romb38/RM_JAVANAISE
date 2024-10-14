@@ -223,5 +223,13 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 		}
 		return null;
 	};
+	
+	public void jvnFlush() throws RemoteException, JvnException {
+		for(JvnObject obj : this.objects.values()) {
+			obj.jvnUnLock();
+		}
+		this.coord.jvnTerminate(js);
+		this.objects = new HashMap<>();
+	}
 
 }
