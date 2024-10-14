@@ -74,6 +74,7 @@ public class Irc2 {
 					e1.printStackTrace();
 				}
 	            frame.dispose(); // Cela fermera la fenêtre
+	            System.exit(0);
 	        }
 	    });
 	    frame.add(close_button);
