@@ -103,7 +103,7 @@ public class sharedObject {
 		return true;
 	}
 
-	public void invalidateReadAllOthers(JvnRemoteServer server) throws RemoteException, JvnException, InterruptedException {
+	public synchronized void invalidateReadAllOthers(JvnRemoteServer server) throws RemoteException, JvnException, InterruptedException {
 		Integer count = 0;
 		System.out.println("Invalidation des verrous en écriture");
 		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet().stream()
@@ -127,7 +127,7 @@ public class sharedObject {
 		}
 	}
 
-	public void invalidateWriteAllOthers(JvnRemoteServer server) throws RemoteException, JvnException, InterruptedException {
+	public synchronized void invalidateWriteAllOthers(JvnRemoteServer server) throws RemoteException, JvnException, InterruptedException {
 		Integer count = 0;
 		ArrayList<JvnRemoteServer> indisponible = new ArrayList<>();
 		System.out.println("Invalidation des verrous en lecture et en écriture");

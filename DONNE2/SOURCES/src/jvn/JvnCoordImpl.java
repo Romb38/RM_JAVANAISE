@@ -115,13 +115,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 			throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
 		}
 
+		state.createOrSetLockState(js, LockStates.R);
+
 		try {
 			state.invalidateReadAllOthers(js);
 		} catch (RemoteException | JvnException | InterruptedException e) {
 			e.printStackTrace();
-		}
-		state.createOrSetLockState(js, LockStates.R);
-		
+		}		
 		return state.getState().jvnGetSharedObject();
 	}
 
@@ -141,12 +141,14 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 			throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
 		}
 		
+		state.createOrSetLockState(js, LockStates.W);
+
+		
 		try {
 			state.invalidateWriteAllOthers(js);
 		} catch (RemoteException | JvnException | InterruptedException e) {
 			e.printStackTrace();
 		}
-		state.createOrSetLockState(js, LockStates.W);
 		
 		return state.getState().jvnGetSharedObject();
 	}
