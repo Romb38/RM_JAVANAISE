@@ -1,6 +1,7 @@
 package jvn;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -104,11 +105,13 @@ public class sharedObject {
 
 	public void invalidateReadAllOthers(JvnRemoteServer server) throws RemoteException, JvnException, InterruptedException {
 		Integer count = 0;
+		System.out.println("Invalidation des verrous en écriture");
 		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet().stream()
 				.filter(object -> object.getKey() != server && LockStates.W.equals(object.getValue()))
 				.collect(Collectors.toList())) {
 			for (int i = 0; i<5; i++) {
 				count ++;
+				System.out.println("Serveur: " + obj.getKey() + " - Test n°"+count.toString());
 				try {
 					state.setObjValue(obj.getKey().jvnInvalidateWriterForReader(state.jvnGetObjectId()));
 					break;
@@ -117,6 +120,7 @@ public class sharedObject {
 				}
 			}
 			if (count == 5) {
+				System.out.println("Serveur" + obj.getKey() + "non-disponible");
 				this.coord.jvnTerminate(obj.getKey());
 			}
 			count = 0;
@@ -125,11 +129,14 @@ public class sharedObject {
 
 	public void invalidateWriteAllOthers(JvnRemoteServer server) throws RemoteException, JvnException, InterruptedException {
 		Integer count = 0;
+		ArrayList<JvnRemoteServer> indisponible = new ArrayList<>();
+		System.out.println("Invalidation des verrous en lecture et en écriture");
 		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet().stream()
 				.filter(object -> object.getKey() != server && LockStates.R.equals(object.getValue()))
 				.collect(Collectors.toList())) {
 			for (int i = 0; i<5; i++) {
 				count ++;
+				System.out.println("Serveur: " + obj.getKey() + " - Test n°"+count.toString());
 				try {
 					obj.getKey().jvnInvalidateReader(state.jvnGetObjectId());
 					break;
@@ -138,7 +145,9 @@ public class sharedObject {
 				}
 			}
 			if (count == 5) {
+				System.out.println("Serveur" + obj.getKey() + "non-disponible");
 				this.coord.jvnTerminate(obj.getKey());
+				indisponible.add(obj.getKey());
 			}
 			count = 0;
 		}
@@ -146,11 +155,13 @@ public class sharedObject {
 		count = 0;
 		
 		for (Entry<JvnRemoteServer, LockStates> obj : this.lockStateByServer.entrySet().stream()
+				.filter(object -> !indisponible.contains(object.getKey()))
 				.filter(object -> object.getKey() != server && LockStates.W.equals(object.getValue()))
 				.collect(Collectors.toList())) {
 			
 			for (int i = 0; i<5; i++) {
 				count ++;
+				System.out.println("Serveur: " + obj.getKey() + " - Test n°"+count.toString());
 				try {
 					obj.getKey().jvnInvalidateWriter(state.jvnGetObjectId());
 					break;
@@ -159,6 +170,7 @@ public class sharedObject {
 				}
 			}
 			if (count == 5) {
+				System.out.println("Serveur" + obj.getKey() + "non-disponible");
 				this.coord.jvnTerminate(obj.getKey());
 			}
 			count = 0;

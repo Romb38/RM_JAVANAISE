@@ -145,9 +145,11 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @throws JvnException
 	 **/
 	public synchronized Serializable jvnLockRead(int joi) throws JvnException {
+		System.out.println("Demande de verrou en lecture pour l'objet ID: " + joi);
 		JvnObjectImpl jvnObject = (JvnObjectImpl) this.objects.get(joi);
 		try {
 			Serializable obj = this.coord.jvnLockRead(joi, js);
+			System.out.println("Verrou en lecture obtenu pour l'objet ID: " + joi);
 			jvnObject.setObjValue(obj);
 		} catch (RemoteException e) {
 			e.printStackTrace();
