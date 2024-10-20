@@ -9,6 +9,7 @@
 
 package jvn;
 
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -69,7 +70,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 	public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
 			throws java.rmi.RemoteException, jvn.JvnException {
 		// to be completed
-		sharedObject tmp = new sharedObject(jon, (JvnObjectImpl) jo);
+		sharedObject tmp = new sharedObject(jon, (JvnObjectImpl) jo, this);
 		tmp.createOrSetLockState(js, LockStates.NL);
 		this.sharedObjects.put(this.jvnGetObjectId(), tmp);
 	}
@@ -114,9 +115,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 			throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
 		}
 
-		state.invalidateReadAllOthers(js);
 		state.createOrSetLockState(js, LockStates.R);
-		
+
+		try {
+			state.invalidateReadAllOthers(js);
+		} catch (RemoteException | JvnException | InterruptedException e) {
+			e.printStackTrace();
+		}		
 		return state.getState().jvnGetSharedObject();
 	}
 
@@ -136,8 +141,14 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 			throw new JvnException("L\'objet identifié par " + joi + "n'existe pas");
 		}
 		
-		state.invalidateWriteAllOthers(js);
 		state.createOrSetLockState(js, LockStates.W);
+
+		
+		try {
+			state.invalidateWriteAllOthers(js);
+		} catch (RemoteException | JvnException | InterruptedException e) {
+			e.printStackTrace();
+		}
 		
 		return state.getState().jvnGetSharedObject();
 	}

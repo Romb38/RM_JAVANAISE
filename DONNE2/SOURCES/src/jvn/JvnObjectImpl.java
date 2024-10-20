@@ -24,7 +24,7 @@ public class JvnObjectImpl implements JvnObject {
 		this.uid = uid;
 		this.lock = new ReentrantLock();
 	}
-	
+
 	public void setObjValue(Serializable obj) {
 		this.objValue = obj;
 	}
@@ -33,14 +33,14 @@ public class JvnObjectImpl implements JvnObject {
 	public void jvnLockRead() throws JvnException {
 		if (LockStates.NL.equals(this.lockState)) {
 			this.lock.lock();
-			this.objValue=this.localServer.jvnLockRead(this.uid);
+			this.objValue = this.localServer.jvnLockRead(this.uid);
 		}
-		
+
 		switch (this.lockState) {
 		case NL:
 			this.lockState = LockStates.R;
 			break;
-		case W: 
+		case W:
 			this.lockState = LockStates.R;
 			break;
 		case RC:
@@ -55,28 +55,28 @@ public class JvnObjectImpl implements JvnObject {
 		if (LockStates.NL.equals(this.lockState)) {
 			this.lock.lock();
 		}
-		
+
 		switch (this.lockState) {
 		case WC:
 			this.lockState = LockStates.W;
 			break;
-		case W: 
+		case W:
 			break;
 		default:
-			this.objValue=this.localServer.jvnLockWrite(this.uid);
-			this.lockState=LockStates.W;
-		}	
+			this.objValue = this.localServer.jvnLockWrite(this.uid);
+			this.lockState = LockStates.W;
+		}
 	}
 
 	@Override
 	public void jvnUnLock() throws JvnException {
 		synchronized (this) {
-			switch(this.lockState) {
+			switch (this.lockState) {
 			case R:
-				this.lockState=LockStates.RC;
+				this.lockState = LockStates.RC;
 				break;
 			case W:
-				this.lockState=LockStates.WC;
+				this.lockState = LockStates.WC;
 				break;
 			default:
 				break;
@@ -105,6 +105,8 @@ public class JvnObjectImpl implements JvnObject {
 
 		}
 		this.lockState = LockStates.NL;
+		setObjValue(null);
+		System.out.println("Object (id:"+this.uid+"): Verrou en lecture libéré");
 	}
 
 	@Override
@@ -114,25 +116,29 @@ public class JvnObjectImpl implements JvnObject {
 			this.lock.unlock();
 		}
 		this.lockState = LockStates.NL;
-		return this.jvnGetSharedObject();
+		Serializable val = this.jvnGetSharedObject();
+		setObjValue(null);
+		System.out.println("Object (id:"+this.uid+"): Verrou en écriture libéré");
+		return val;
 	}
 
 	@Override
-	public Serializable jvnInvalidateWriterForReader() throws JvnException {		
-		switch (this.lockState){
-        case W:
+	public Serializable jvnInvalidateWriterForReader() throws JvnException {
+		switch (this.lockState) {
+		case W:
 			this.lock.lock();
 			this.lock.unlock();
-            this.lockState = LockStates.RC;
-            break;
-        case RWC:
-        case WC:
-            this.lockState=LockStates.RC;
-            break;
-        default:
-            
-    }
-    return this.objValue;
+			this.lockState = LockStates.RC;
+			break;
+		case RWC:
+		case WC:
+			this.lockState = LockStates.RC;
+			break;
+		default:
+
+		}
+		System.out.println("Object (id:"+this.uid+"): Verrou en écriture transformé en verrou de lecture");
+		return this.objValue;
 	}
 
 }
