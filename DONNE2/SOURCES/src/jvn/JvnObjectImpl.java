@@ -106,7 +106,8 @@ public class JvnObjectImpl implements JvnObject {
 		}
 		this.lockState = LockStates.NL;
 		setObjValue(null);
-		System.out.println("Object (id:"+this.uid+"): Verrou en lecture libéré");
+		System.out.println("Object (id:" + this.uid + "): Verrou en lecture libéré + flush (val="
+				+ this.jvnGetSharedObject() + ")");
 	}
 
 	@Override
@@ -118,7 +119,8 @@ public class JvnObjectImpl implements JvnObject {
 		this.lockState = LockStates.NL;
 		Serializable val = this.jvnGetSharedObject();
 		setObjValue(null);
-		System.out.println("Object (id:"+this.uid+"): Verrou en écriture libéré");
+		System.out.println("Object (id:" + this.uid + "): Verrou en écriture libéré + flush (val="
+				+ this.jvnGetSharedObject() + ")");
 		return val;
 	}
 
@@ -137,7 +139,7 @@ public class JvnObjectImpl implements JvnObject {
 		default:
 
 		}
-		System.out.println("Object (id:"+this.uid+"): Verrou en écriture transformé en verrou de lecture");
+		System.out.println("Object (id:" + this.uid + "): Verrou en écriture transformé en verrou de lecture");
 		return this.objValue;
 	}
 
